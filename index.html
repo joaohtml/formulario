@@ -11,7 +11,6 @@
       padding: 20px;
       margin: 0;
     }
-
     .container {
       max-width: 600px;
       margin: auto;
@@ -20,25 +19,19 @@
       border-radius: 12px;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     }
-
     h2 {
       margin-bottom: 20px;
       color: #333;
     }
-
     .form-group {
       margin-bottom: 15px;
     }
-
     label {
       font-weight: 600;
       display: block;
       margin-bottom: 5px;
     }
-
-    input,
-    select,
-    textarea {
+    input, select, textarea {
       width: 100%;
       padding: 10px;
       border-radius: 6px;
@@ -46,17 +39,12 @@
       font-size: 1rem;
       box-sizing: border-box;
     }
-
-    textarea {
-      resize: vertical;
-    }
-
+    textarea { resize: vertical; }
     .checkbox-group {
       display: flex;
       align-items: center;
       gap: 10px;
     }
-
     button {
       background-color: #007bff;
       color: #fff;
@@ -67,56 +55,45 @@
       cursor: pointer;
       transition: background 0.3s ease;
     }
-
     button:hover {
       background-color: #0056b3;
     }
-
     .feedback {
       margin-top: 15px;
       padding: 10px;
       border-radius: 6px;
       display: none;
     }
-
     .feedback.success {
       background-color: #d4edda;
       color: #155724;
       border: 1px solid #c3e6cb;
     }
-
     .feedback.error {
       background-color: #f8d7da;
       color: #721c24;
       border: 1px solid #f5c6cb;
     }
-
     @media (max-width: 600px) {
-      .container {
-        padding: 15px;
-      }
+      .container { padding: 15px; }
     }
   </style>
 </head>
 <body>
-
   <div class="container" role="form" aria-labelledby="formTitle">
     <h2 id="formTitle">Formulário de Contato</h2>
 
     <form id="contatoForm" novalidate>
       <fieldset>
         <legend>Dados Pessoais</legend>
-
         <div class="form-group">
           <label for="nome">Nome:</label>
           <input type="text" id="nome" name="nome" required autocomplete="name" />
         </div>
-
         <div class="form-group">
           <label for="email">E-mail:</label>
           <input type="email" id="email" name="email" required autocomplete="email" />
         </div>
-
         <div class="form-group">
           <label for="telefone">Telefone:</label>
           <input type="tel" id="telefone" name="telefone" pattern="\(?\d{2}\)?[\s-]?\d{4,5}-?\d{4}" placeholder="(XX) XXXXX-XXXX" autocomplete="tel" />
@@ -125,7 +102,6 @@
 
       <fieldset>
         <legend>Mensagem</legend>
-
         <div class="form-group">
           <label for="tipoContato">Tipo de Contato:</label>
           <select id="tipoContato" name="tipoContato" required>
@@ -135,7 +111,6 @@
             <option value="comunicação">Comunicação</option>
           </select>
         </div>
-
         <div class="form-group">
           <label for="mensagem">Mensagem:</label>
           <textarea id="mensagem" name="mensagem" rows="4" required></textarea>
@@ -148,22 +123,27 @@
       </div>
 
       <button type="submit">Enviar</button>
-
       <div id="feedback" class="feedback" role="alert"></div>
     </form>
   </div>
 
+  <!-- EmailJS SDK -->
+  <script src="https://cdn.emailjs.com/sdk/3.2/email.min.js"></script>
   <script>
+    (function() {
+      emailjs.init("aNmJFdKGc_SZv3R88"); // Substitua pelo seu User ID
+    })();
+
     document.getElementById("contatoForm").addEventListener("submit", function (e) {
       e.preventDefault();
 
-      const nome = document.getElementById("nome").value.trim();
-      const email = document.getElementById("email").value.trim();
-      const telefone = document.getElementById("telefone").value.trim();
-      const tipoContato = document.getElementById("tipoContato").value;
-      const mensagem = document.getElementById("mensagem").value.trim();
-      const termos = document.getElementById("termos").checked;
       const feedback = document.getElementById("feedback");
+      const nome = this.nome.value.trim();
+      const email = this.email.value.trim();
+      const telefone = this.telefone.value.trim();
+      const tipoContato = this.tipoContato.value;
+      const mensagem = this.mensagem.value.trim();
+      const termos = this.termos.checked;
 
       feedback.className = 'feedback';
       feedback.style.display = 'none';
@@ -175,31 +155,29 @@
         return;
       }
 
-      const telefoneInput = document.getElementById("telefone");
-      if (telefone && !telefoneInput.checkValidity()) {
+      if (telefone && !this.telefone.checkValidity()) {
         feedback.textContent = "Telefone inválido. Use o formato (XX) XXXXX-XXXX.";
         feedback.classList.add("error");
         feedback.style.display = "block";
         return;
       }
 
-      feedback.textContent = "Mensagem enviada com sucesso!";
-      feedback.classList.add("success");
-      feedback.style.display = "block";
+      emailjs.sendForm("service_5e94pin", "template_ls00f8i", this)
+        .then(() => {
+          feedback.textContent = "Mensagem enviada com sucesso!";
+          feedback.classList.add("success");
+          feedback.style.display = "block";
+          this.reset();
 
-      console.log("Dados enviados:", {
-        nome,
-        email,
-        telefone,
-        tipoContato,
-        mensagem,
-        termosAceitos: termos
-      });
-
-      setTimeout(() => {
-        feedback.style.display = 'none';
-        e.target.reset();
-      }, 3000);
+          setTimeout(() => {
+            feedback.style.display = 'none';
+          }, 3000);
+        }, (error) => {
+          feedback.textContent = "Erro ao enviar a mensagem. Tente novamente.";
+          feedback.classList.add("error");
+          feedback.style.display = "block";
+          console.error("Erro EmailJS:", error);
+        });
     });
   </script>
 </body>
